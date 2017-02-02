@@ -1,10 +1,13 @@
 package edu.gmu.swe622.lab1;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.LinkedList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class AddressBookServer implements AddressBook {
 
@@ -34,13 +37,45 @@ public class AddressBookServer implements AddressBook {
 
 	LinkedList<Person> people = new LinkedList<Person>();
 
+	ReentrantReadWriteLock peopleLock = new ReentrantReadWriteLock();
+
+	@Override
+	public void editPerson(Person p) {
+		peopleLock.writeLock().lock();
+		try {
+			for(Person _p : people)
+				if(p.id.equals(_p.id))
+				{
+					_p.email = p.email;
+					_p.name = p.name;
+					_p.notes = p.notes;
+				}
+		} finally {
+			peopleLock.writeLock().unlock();
+		}
+	}
+
 	@Override
 	public LinkedList<Person> getAddressBook() {
-		return people;
+		peopleLock.readLock().lock();
+		try {
+			return people;
+		} finally {
+			peopleLock.readLock().unlock();
+		}
 	}
 
 	@Override
 	public void addPerson(Person p) {
-		people.add(p);
+		peopleLock.writeLock().lock();
+		try {
+			//Search for someone who already has this ID, throw exception if exists
+			for(Person _p : people)
+				if(p.id.equals(_p.id))
+					throw new IllegalArgumentException("Person with id " + p.id + " already exists!");
+			people.add(p);
+		} finally {
+			peopleLock.writeLock().unlock();
+		}
 	}
 }

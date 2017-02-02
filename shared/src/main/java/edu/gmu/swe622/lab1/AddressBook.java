@@ -9,4 +9,6 @@ public interface AddressBook extends Remote {
 	public LinkedList<Person> getAddressBook() throws RemoteException;
 
 	public void addPerson(Person p) throws RemoteException;
+	
+	public void editPerson(Person p) throws RemoteException;
 }
