@@ -37,6 +37,7 @@ public class AddressBookServer implements AddressBook {
 
 	LinkedList<Person> people = new LinkedList<Person>();
 
+	//We'll use a read-write lock to manage the synchronization on people
 	ReentrantReadWriteLock peopleLock = new ReentrantReadWriteLock();
 
 	@Override
